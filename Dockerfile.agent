@@ -1,0 +1,73 @@
+# NetXMS Agent Dockerfile
+FROM ubuntu:24.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+# Updated to match compose default for NETXMS_SERVER_IP
+ENV SERVER=172.20.0.2 
+ENV DEBUG_LEVEL=1
+
+# Update package list and install prerequisites
+RUN apt-get update && \
+    apt-get install -y \
+    lsb-release \
+    wget \
+    gpg \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add NetXMS repository
+RUN echo "deb http://packages.netxms.org/$(lsb_release -si | tr A-Z a-z) $(lsb_release -sc | tr A-Z a-z) main" > /etc/apt/sources.list.d/netxms.list && \
+    wget -q -O - https://packages.netxms.org/netxms-keyring.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/netxms-keyring.gpg
+
+# Update package list with NetXMS repository and install NetXMS agent
+RUN apt-get update && \
+    apt-get install -y netxms-agent && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create NetXMS configuration directory
+RUN mkdir -p /etc/netxms /var/lib/netxms /var/log
+
+# Set working directory
+WORKDIR /etc/netxms
+
+# Expose NetXMS agent port (default 4700)
+EXPOSE 4700
+
+# Create startup script to handle environment variables and create config file
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'CONFIG_FILE="/etc/netxms/nxagentd.conf"' >> /start.sh && \
+    echo 'echo "Creating nxagentd.conf..."' >> /start.sh && \
+    echo 'echo "LogFile = /var/log/nxagentd.log" > "$CONFIG_FILE"' >> /start.sh && \
+    # echo 'echo "FileSystemRoot = /hostfs" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo 'echo "Agent start.sh: Configuring MasterServers..."' >> /start.sh && \
+    echo 'echo "Attempting to set MasterServers using MASTER_SERVERS env: [$MASTER_SERVERS]"' >> /start.sh && \
+    echo 'if [ ! -z "$MASTER_SERVERS" ]; then' >> /start.sh && \
+    echo '  echo "MasterServers = $MASTER_SERVERS" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '  echo "MasterServers set using MASTER_SERVERS: $MASTER_SERVERS"' >> /start.sh && \
+    echo 'elif [ ! -z "$SERVER" ]; then' >> /start.sh && \
+    echo '  echo "MASTER_SERVERS not set, attempting to set MasterServers using SERVER env: [$SERVER]"' >> /start.sh && \
+    echo '  echo "MasterServers = $SERVER" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '  echo "MasterServers set using SERVER: $SERVER"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "Neither MASTER_SERVERS nor SERVER env vars are set. Using default MasterServers."' >> /start.sh && \
+    echo '  echo "MasterServers = 172.20.0.0/16" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo 'echo "Setting DebugLevel..."' >> /start.sh && \
+    echo 'if [ ! -z "$DEBUG_LEVEL" ]; then' >> /start.sh && \
+    echo '  echo "DebugLevel = $DEBUG_LEVEL" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '  echo "DebugLevel set to: $DEBUG_LEVEL"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "DEBUG_LEVEL not set. Using default DebugLevel 1."' >> /start.sh && \
+    echo '  echo "DebugLevel = 0" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo 'echo "Final nxagentd.conf content:"' >> /start.sh && \
+    echo 'cat "$CONFIG_FILE"' >> /start.sh && \
+    echo 'exec nxagentd -f -c "$CONFIG_FILE"' >> /start.sh && \
+    chmod +x /start.sh
+
+# Start NetXMS agent in foreground mode
+CMD ["/start.sh"]

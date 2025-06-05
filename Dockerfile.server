@@ -1,0 +1,54 @@
+# Simplified NetXMS Server Dockerfile for debugging
+FROM ubuntu:24.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update package list and install prerequisites
+RUN apt-get update && \
+    apt-get install -y \
+    lsb-release \
+    wget \
+    gpg \
+    vim \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add NetXMS repository
+RUN echo "deb http://packages.netxms.org/$(lsb_release -si | tr A-Z a-z) $(lsb_release -sc | tr A-Z a-z) main" > /etc/apt/sources.list.d/netxms.list && \
+    wget -q -O - https://packages.netxms.org/netxms-keyring.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/netxms-keyring.gpg
+
+# Update package list with NetXMS repository and install NetXMS server
+RUN apt-get update && \
+    apt-get install -y netxms-server netxms-dbdrv-sqlite3 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create directories
+RUN mkdir -p /var/lib/netxms /var/log/netxms
+
+# Create minimal configuration with correct parameters
+RUN echo "LogFile=/var/log/netxmsd" > /etc/netxmsd.conf && \
+    echo "DebugLevel=3" >> /etc/netxmsd.conf && \
+    echo "DBDriver=sqlite.ddr" >> /etc/netxmsd.conf && \
+    echo "DBName=/var/lib/netxms/netxms.db" >> /etc/netxmsd.conf
+
+# Simple startup script
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'echo "=== Debug: Checking database driver ==="' >> /start.sh && \
+    echo 'ls -la /usr/lib/x86_64-linux-gnu/netxms/dbdrv/' >> /start.sh && \
+    echo 'echo "=== Debug: NetXMS config ==="' >> /start.sh && \
+    echo 'cat /etc/netxmsd.conf' >> /start.sh && \
+    echo 'echo "=== Initializing database if needed ==="' >> /start.sh && \
+    echo 'if [ ! -f /var/lib/netxms/netxms.db ]; then' >> /start.sh && \
+    echo '  cd /var/lib/netxms' >> /start.sh && \
+    echo '  nxdbmgr init' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'echo "=== Starting NetXMS server ==="' >> /start.sh && \
+    echo 'netxmsd' >> /start.sh && \
+    chmod +x /start.sh
+
+# Expose ports
+EXPOSE 4701 4703
+
+# Start server
+CMD ["/start.sh"]
