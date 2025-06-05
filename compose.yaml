@@ -9,7 +9,7 @@ services:
     tty: true
     ports:
       - "${NETXMS_SERVER_PORT:-4701}:4701"
-      - "${NETXMS_WEB_PORT:-4703}:4703"
+      - "${NETXMS_TUNNEL_PORT:-4703}:4703"
     volumes:
       - ./data:/var/lib/netxms
       # - ${HOST_CONFIG_PATH:-./config}:/etc/netxms/conf.d:ro
