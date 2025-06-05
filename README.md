@@ -15,7 +15,7 @@ This project provides a complete NetXMS setup using Docker containers:
 1. **Clone and Setup**:
    ```bash
    git clone <your-repo>
-   cd netxms-docker
+   cd netxms
    cp .env.example .env
    ```
 
@@ -23,8 +23,8 @@ This project provides a complete NetXMS setup using Docker containers:
    Edit `.env` file to match your network setup:
    ```bash
    # Example configuration
-   NETXMS_SERVER_PORT=4701
-   NETXMS_WEB_PORT=4703
+   NETXMS_SERVER_PORT=4701      # client connections
+   NETXMS_TUNNEL_PORT=4703      # agent tunnel port
    NETXMS_SERVER_IP=172.20.0.2
    NETXMS_MASTER_SERVERS=172.20.0.0/16
    NETXMS_DEBUG_LEVEL=1
@@ -42,8 +42,8 @@ This project provides a complete NetXMS setup using Docker containers:
 
 ### NetXMS Server Container
 - **Image**: `oriolrius/netxms-server:latest`
-- **Ports**: 4701 (server), 4703 (web UI)
-- **Database**: SQLite (stored in `./var` volume)
+- **Ports**: 4701 (client connections), 4703 (agent tunnel)
+- **Database**: SQLite (stored in `./data` volume)
 - **Network**: Static IP in custom bridge network
 
 ### NetXMS Agent Container
@@ -58,8 +58,8 @@ This project provides a complete NetXMS setup using Docker containers:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NETXMS_SERVER_PORT` | 4701 | NetXMS server port |
-| `NETXMS_WEB_PORT` | 4703 | Web interface port |
+| `NETXMS_SERVER_PORT` | 4701 | Client connection port |
+| `NETXMS_TUNNEL_PORT` | 4703 | Agent tunnel port |
 | `NETXMS_SERVER_IP` | 172.20.0.2 | Server IP in Docker network |
 | `NETXMS_MASTER_SERVERS` | 172.20.0.0/16 | Allowed master servers CIDR |
 | `NETXMS_DEBUG_LEVEL` | 1 | Debug level (1-9) |
@@ -69,7 +69,7 @@ This project provides a complete NetXMS setup using Docker containers:
 
 ### Volumes
 
-- `./var`: NetXMS server data and database
+- `./data`: NetXMS server data and database
 - `./agent`: NetXMS agent data and configuration
 - `./config`: Custom configuration files (optional)
 
@@ -154,19 +154,19 @@ docker compose up -d
 - Agent runs in privileged mode for system monitoring
 - Custom Docker network isolates NetXMS traffic
 - Consider using external database for production
-- Regular backup of `./var` directory recommended
+- Regular backup of `./data` directory recommended
 - Change default admin password after first login
 
 ## File Structure
 
 ```
-netxms-docker/
+netxms/
 ├── .env                    # Environment configuration
 ├── .env.example           # Environment template
 ├── compose.yaml           # Docker Compose configuration
 ├── Dockerfile.server      # Server container build
 ├── Dockerfile.agent       # Agent container build
-├── var/                   # Server data (auto-created)
+├── data/                   # Server data (auto-created)
 ├── agent/                 # Agent data (auto-created)
 └── config/                # Custom configurations (optional)
 ```
