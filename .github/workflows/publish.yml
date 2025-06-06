@@ -10,6 +10,7 @@ name: Publish Docker images
 permissions:
   contents: read
   packages: write
+  actions: read
 
 jobs:
   build:
@@ -26,6 +27,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug info
+        run: |
+          echo "Actor: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Repository owner: ${{ github.repository_owner }}"
 
       - name: Determine tag
         id: vars
@@ -44,8 +51,8 @@ jobs:
           file: Dockerfile.server
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/netxms-server:${{ steps.vars.outputs.tag }}
-            ghcr.io/${{ github.actor }}/netxms-server:latest
+            ghcr.io/${{ github.actor }}/docker-netxms-server:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.actor }}/docker-netxms-server:latest
 
       - name: Build and push agent image
         uses: docker/build-push-action@v5
@@ -54,5 +61,5 @@ jobs:
           file: Dockerfile.agent
           push: true
           tags: |
-            ghcr.io/${{ github.actor }}/netxms-agent:${{ steps.vars.outputs.tag }}
-            ghcr.io/${{ github.actor }}/netxms-agent:latest
+            ghcr.io/${{ github.actor }}/docker-netxms-agent:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.actor }}/docker-netxms-agent:latest
