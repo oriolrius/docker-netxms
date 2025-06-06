@@ -44,8 +44,8 @@ jobs:
           file: Dockerfile.server
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/netxms-server:${{ steps.vars.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/netxms-server:latest
+            ghcr.io/${{ github.actor }}/netxms-server:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.actor }}/netxms-server:latest
 
       - name: Build and push agent image
         uses: docker/build-push-action@v5
@@ -54,5 +54,5 @@ jobs:
           file: Dockerfile.agent
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/netxms-agent:${{ steps.vars.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/netxms-agent:latest
+            ghcr.io/${{ github.actor }}/netxms-agent:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.actor }}/netxms-agent:latest
