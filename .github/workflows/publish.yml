@@ -26,11 +26,11 @@ jobs:
         id: vars
         run: |
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            TAG="${GITHUB_REF_NAME}"
+            tag="${GITHUB_REF_NAME}"
           else
-            TAG=$(git rev-parse --short=6 HEAD)
+            tag=$(git rev-parse --short=6 HEAD)
           fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Build and push server image
         uses: docker/build-push-action@v5
@@ -38,9 +38,9 @@ jobs:
           context: .
           file: Dockerfile.server
           push: true
-          tags:
-            - ghcr.io/${{ github.repository_owner }}/netxms-server:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
-            - ghcr.io/${{ github.repository_owner }}/netxms-server:latest  # yamllint disable-line rule:line-length
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/netxms-server:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/netxms-server:latest
 
       - name: Build and push agent image
         uses: docker/build-push-action@v5
@@ -48,6 +48,6 @@ jobs:
           context: .
           file: Dockerfile.agent
           push: true
-          tags:
-            - ghcr.io/${{ github.repository_owner }}/netxms-agent:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
-            - ghcr.io/${{ github.repository_owner }}/netxms-agent:latest  # yamllint disable-line rule:line-length
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/netxms-agent:${{ steps.vars.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/netxms-agent:latest
