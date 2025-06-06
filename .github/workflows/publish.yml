@@ -1,4 +1,5 @@
 ---
+# yamllint disable rule:line-length
 name: Publish Docker images
 
 "on":
@@ -38,9 +39,9 @@ jobs:
           context: .
           file: Dockerfile.server
           push: true
-          tags:
-            - ghcr.io/${{ github.repository_owner }}/netxms-server:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
-            - ghcr.io/${{ github.repository_owner }}/netxms-server:latest  # yamllint disable-line rule:line-length
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/netxms-server:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
+            ghcr.io/${{ github.repository_owner }}/netxms-server:latest  # yamllint disable-line rule:line-length
 
       - name: Build and push agent image
         uses: docker/build-push-action@v5
@@ -48,6 +49,6 @@ jobs:
           context: .
           file: Dockerfile.agent
           push: true
-          tags:
-            - ghcr.io/${{ github.repository_owner }}/netxms-agent:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
-            - ghcr.io/${{ github.repository_owner }}/netxms-agent:latest  # yamllint disable-line rule:line-length
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/netxms-agent:${{ steps.vars.outputs.tag }}  # yamllint disable-line rule:line-length
+            ghcr.io/${{ github.repository_owner }}/netxms-agent:latest  # yamllint disable-line rule:line-length
