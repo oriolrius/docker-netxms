@@ -187,7 +187,6 @@ This project is licensed under the MIT License. NetXMS itself is licensed under 
 
 - NetXMS Documentation: https://www.netxms.org/documentation/
 - NetXMS Community: https://forum.netxms.org/
-- Docker Hub: https://hub.docker.com/u/oriolrius
 
 ## Version Information
 
