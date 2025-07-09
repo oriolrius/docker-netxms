@@ -38,13 +38,13 @@ This project provides a complete NetXMS setup using Docker containers:
 
 ## Architecture
 ### NetXMS Server Container
-- **Image**: `oriolrius/netxms-server:latest`
+- **Image**: `ghcr.io/oriolrius/docker-netxms-server:latest`
 - **Ports**: 4701 (client connections), 4703 (agent tunnel)
 - **Database**: SQLite (stored in `./data` volume)
 - **Network**: Static IP in custom bridge network
 
 ### NetXMS Agent Container
-- **Image**: `oriolrius/netxms-agent:latest`
+- **Image**: `ghcr.io/oriolrius/docker-netxms-agent:latest`
 - **Mode**: Host network with privileged access
 - **Capabilities**: Full system monitoring access + proxy functionality
 - **Volumes**: Host system directories mounted for monitoring

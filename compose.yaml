@@ -1,6 +1,6 @@
 services:
   netxms-server:
-    image: ghcr.io/oriolrius/netxms-server:latest
+    image: ghcr.io/oriolrius/docker-netxms-server:latest
     build:
       context: .
       dockerfile: Dockerfile.server
@@ -31,7 +31,7 @@ services:
         max-file: "3"
 
   netxms-agent:
-    image: ghcr.io/oriolrius/netxms-agent:latest
+    image: ghcr.io/oriolrius/docker-netxms-agent:latest
     container_name: netxms-agent
     restart: unless-stopped
     privileged: true
