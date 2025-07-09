@@ -41,6 +41,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'echo "LogFile = /var/log/nxagentd.log" > "$CONFIG_FILE"' >> /start.sh && \
     # echo 'echo "FileSystemRoot = /hostfs" >> "$CONFIG_FILE"' >> /start.sh && \
     echo '' >> /start.sh && \
+    echo '# Configure Master Servers - determines which NetXMS servers can connect to this agent' >> /start.sh && \
     echo 'echo "Agent start.sh: Configuring MasterServers..."' >> /start.sh && \
     echo 'echo "Attempting to set MasterServers using MASTER_SERVERS env: [$MASTER_SERVERS]"' >> /start.sh && \
     echo 'if [ ! -z "$MASTER_SERVERS" ]; then' >> /start.sh && \
@@ -55,6 +56,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo '  echo "MasterServers = 172.20.0.0/16" >> "$CONFIG_FILE"' >> /start.sh && \
     echo 'fi' >> /start.sh && \
     echo '' >> /start.sh && \
+    echo '# Configure Debug Level - controls verbosity of agent logging' >> /start.sh && \
     echo 'echo "Setting DebugLevel..."' >> /start.sh && \
     echo 'if [ ! -z "$DEBUG_LEVEL" ]; then' >> /start.sh && \
     echo '  echo "DebugLevel = $DEBUG_LEVEL" >> "$CONFIG_FILE"' >> /start.sh && \
@@ -62,6 +64,25 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'else' >> /start.sh && \
     echo '  echo "DEBUG_LEVEL not set. Using default DebugLevel 1."' >> /start.sh && \
     echo '  echo "DebugLevel = 0" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Configure Proxy Functionality - enables agent to act as gateway for unreachable devices' >> /start.sh && \
+    echo 'echo "Configuring proxy settings..."' >> /start.sh && \
+    echo 'if [ ! -z "$PROXY_AGENT" ]; then' >> /start.sh && \
+    echo '  echo "EnableProxy = $PROXY_AGENT" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '  echo "Agent proxy functionality set to: $PROXY_AGENT"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "PROXY_AGENT not set. Disabling agent proxy functionality."' >> /start.sh && \
+    echo '  echo "EnableProxy = no" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Configure SNMP Proxy - enables agent to forward SNMP requests to devices behind it' >> /start.sh && \
+    echo 'if [ ! -z "$PROXY_SNMP" ]; then' >> /start.sh && \
+    echo '  echo "EnableSNMPProxy = $PROXY_SNMP" >> "$CONFIG_FILE"' >> /start.sh && \
+    echo '  echo "SNMP proxy functionality set to: $PROXY_SNMP"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "PROXY_SNMP not set. Disabling SNMP proxy functionality."' >> /start.sh && \
+    echo '  echo "EnableSNMPProxy = no" >> "$CONFIG_FILE"' >> /start.sh && \
     echo 'fi' >> /start.sh && \
     echo '' >> /start.sh && \
     echo 'echo "Final nxagentd.conf content:"' >> /start.sh && \
