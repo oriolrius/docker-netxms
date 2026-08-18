@@ -150,6 +150,30 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
+### NetXMS Version Pinning
+
+Both images pin the NetXMS packages to a fixed version (`ARG NETXMS_VERSION`,
+currently `6.2.3`) so that rebuilding later reproduces the same NetXMS instead of
+silently picking up whatever `packages.netxms.org` serves that day. This matters most
+for the server: a newer server refuses an older database and crash-loops with
+`Your database has format version X, but server is compiled for version Y`. Upgrading
+should be deliberate and include `nxdbmgr upgrade`.
+
+Build a different version:
+
+```bash
+# a specific release
+docker build --build-arg NETXMS_VERSION=6.2.4 -f Dockerfile.server -t netxms-server .
+
+# a release whose Debian revision is not -1
+docker build --build-arg NETXMS_VERSION=6.2.0-2 -f Dockerfile.agent -t netxms-agent .
+
+# whatever is newest in the repository (previous, unpinned behaviour)
+docker build --build-arg NETXMS_VERSION=latest -f Dockerfile.agent -t netxms-agent .
+```
+
+With Compose, set `NETXMS_VERSION` in `.env` before `docker compose build`.
+
 ## Troubleshooting
 
 ### Server Issues
@@ -255,7 +279,7 @@ This project is licensed under the MIT License. NetXMS itself is licensed under 
 
 ## Version Information
 
-- NetXMS Version: Latest from official repository
+- NetXMS Version: 6.2.3 (pinned, override with `NETXMS_VERSION` — see [NetXMS Version Pinning](#netxms-version-pinning))
 - Docker Compose Version: 27.0.3+
 - Base Image: Ubuntu 24.04
 - Supported Architectures: x86_64

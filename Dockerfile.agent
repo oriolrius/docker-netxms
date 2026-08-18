@@ -20,9 +20,33 @@ RUN apt-get update && \
 RUN echo "deb http://packages.netxms.org/$(lsb_release -si | tr A-Z a-z) $(lsb_release -sc | tr A-Z a-z) main" > /etc/apt/sources.list.d/netxms.list && \
     wget -q -O - https://packages.netxms.org/netxms-keyring.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/netxms-keyring.gpg
 
-# Update package list with NetXMS repository and install NetXMS agent
+# NetXMS version to install. Pinned by default so that rebuilding an image months
+# later reproduces the same agent rather than silently jumping to whatever is current
+# in packages.netxms.org. Override to track a different release:
+#   docker build --build-arg NETXMS_VERSION=6.2.4 -f Dockerfile.agent .
+# Use NETXMS_VERSION=latest to deliberately take the newest available. A Debian
+# revision may be included when upstream ships one other than -1 (e.g. 6.2.0-2).
+ARG NETXMS_VERSION=6.2.3
+
+# Update package list with NetXMS repository and install NetXMS agent.
+# netxms-base and netxms-dbdrv-sqlite3 must be pinned explicitly as well: netxms-agent
+# depends on them with a strict "=" version, and apt otherwise resolves them to the
+# newest available and then reports the pinned agent as an unsatisfiable dependency.
 RUN apt-get update && \
-    apt-get install -y netxms-agent && \
+    CODENAME="$(lsb_release -sc | tr A-Z a-z)" && \
+    if [ "$NETXMS_VERSION" = "latest" ]; then \
+        apt-get install -y netxms-agent; \
+    else \
+        case "$NETXMS_VERSION" in \
+            *-*) PKG_VERSION="${NETXMS_VERSION}+${CODENAME}" ;; \
+            *) PKG_VERSION="${NETXMS_VERSION}-1+${CODENAME}" ;; \
+        esac && \
+        apt-get install -y "netxms-agent=${PKG_VERSION}" \
+                           "netxms-base=${PKG_VERSION}" \
+                           "netxms-dbdrv-sqlite3=${PKG_VERSION}"; \
+    fi && \
+    apt-mark hold netxms-agent netxms-base netxms-dbdrv-sqlite3 && \
+    nxagentd -v 2>&1 | grep -F "NetXMS Core Agent Version" && \
     rm -rf /var/lib/apt/lists/*
 
 # Create NetXMS configuration directory

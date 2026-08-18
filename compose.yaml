@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
+      args:
+        NETXMS_VERSION: ${NETXMS_VERSION:-6.2.3}
     container_name: netxms-server
     restart: unless-stopped
     tty: true
