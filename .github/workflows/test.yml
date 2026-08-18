@@ -1,0 +1,38 @@
+---
+# yamllint disable rule:line-length
+name: Test images
+
+"on":
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-matrix:
+    name: NETXMS_VERSION pinning
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint test scripts
+        run: shellcheck tests/*.sh
+
+      - name: Run build suite
+        run: tests/run.sh --suite build
+
+  runtime:
+    name: Server and agent behaviour
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run runtime suite
+        run: tests/run.sh --suite runtime

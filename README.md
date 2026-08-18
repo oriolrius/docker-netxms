@@ -254,17 +254,34 @@ netxms/
 ├── compose.yaml           # Docker Compose configuration
 ├── Dockerfile.server      # Server container build
 ├── Dockerfile.agent       # Agent container build with proxy support
+├── tests/                 # Release validation suites (see tests/README.md)
 ├── data/                   # Server data (auto-created)
 ├── agent/                 # Agent data (auto-created)
 └── config/                # Custom configurations (optional)
 ```
+
+## Testing
+
+The suites in [`tests/`](tests/README.md) validate a build or a release. They need
+Docker and nothing else:
+
+```bash
+tests/run.sh                                   # version pinning + server/agent behaviour
+tests/run.sh --suite published --tag v1.1.0    # what is actually published to GHCR
+```
+
+`build.sh` checks that `NETXMS_VERSION` pins what it claims (including a release
+older than the newest one, which is the case the pin exists for), `runtime.sh` starts
+a server and an agent and queries the agent over NXCP, and `published.sh` verifies
+the images in the registry for a tag. They run on every push and pull request, and
+the publish workflow re-runs `published.sh` against each release after pushing it.
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test with your environment, especially proxy functionality
+4. Run `tests/run.sh` (and add a check when you fix something it did not catch)
 5. Submit a pull request
 
 ## License
