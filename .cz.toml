@@ -1,0 +1,14 @@
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "1.1.0"
+tag_format = "v$version"
+version_scheme = "semver"
+update_changelog_on_bump = true
+changelog_incremental = true
+annotated_tag = true
+major_version_zero = false
+# Images are the artifact here, so anything that can change what ships -- tests and
+# CI included -- is worth listing in the changelog, not just feat/fix.
+changelog_pattern = "^(BREAKING[\\-\\ ]CHANGE|feat|fix|perf|refactor|build|ci|test|docs)(\\(.*\\))?(!)?"
+change_type_map = {feat = "Features", fix = "Fixes", perf = "Performance", refactor = "Refactoring", build = "Build", ci = "CI", test = "Tests", docs = "Documentation"}
+change_type_order = ["BREAKING CHANGE", "Features", "Fixes", "Performance", "Refactoring", "Build", "CI", "Tests", "Documentation"]

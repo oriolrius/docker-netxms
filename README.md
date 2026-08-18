@@ -282,7 +282,23 @@ the publish workflow re-runs `published.sh` against each release after pushing i
 2. Create a feature branch
 3. Make your changes
 4. Run `tests/run.sh` (and add a check when you fix something it did not catch)
-5. Submit a pull request
+5. Commit with [Conventional Commits](https://www.conventionalcommits.org/) — `cz commit`
+   walks you through it
+6. Submit a pull request
+
+### Releases
+
+Versioning is handled by [Commitizen](https://commitizen-tools.github.io/commitizen/)
+(`.cz.toml`): the commit types since the last tag decide the increment, and the tag
+is what publishes the images.
+
+```bash
+cz bump            # version + CHANGELOG.md + annotated tag, from the commit history
+git push --follow-tags
+```
+
+Pushing the tag triggers the publish workflow, which builds the images and then
+re-runs `tests/published.sh` against what it pushed.
 
 ## License
 
