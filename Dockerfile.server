@@ -18,9 +18,26 @@ RUN apt-get update && \
 RUN echo "deb http://packages.netxms.org/$(lsb_release -si | tr A-Z a-z) $(lsb_release -sc | tr A-Z a-z) main" > /etc/apt/sources.list.d/netxms.list && \
     wget -q -O - https://packages.netxms.org/netxms-keyring.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/netxms-keyring.gpg
 
+# NetXMS version to install. Pinned by default: an unpinned rebuild can pull a new
+# major release whose server refuses the existing database ("Your database has format
+# version 52.17, but server is compiled for version 62.38") and crash-loops. Upgrading
+# should be a deliberate act that includes `nxdbmgr upgrade`, not a side effect of a
+# rebuild. Override to move deliberately:
+#   docker build --build-arg NETXMS_VERSION=6.2.4 -f Dockerfile.server .
+# Use NETXMS_VERSION=latest to deliberately take the newest available.
+ARG NETXMS_VERSION=6.2.3
+
 # Update package list with NetXMS repository and install NetXMS server
 RUN apt-get update && \
-    apt-get install -y netxms-server netxms-dbdrv-sqlite3 && \
+    CODENAME="$(lsb_release -sc | tr A-Z a-z)" && \
+    if [ "$NETXMS_VERSION" = "latest" ]; then \
+        apt-get install -y netxms-server netxms-dbdrv-sqlite3; \
+    else \
+        apt-get install -y "netxms-server=${NETXMS_VERSION}-1+${CODENAME}" \
+                           "netxms-dbdrv-sqlite3=${NETXMS_VERSION}-1+${CODENAME}"; \
+    fi && \
+    apt-mark hold netxms-server netxms-dbdrv-sqlite3 && \
+    netxmsd -v && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories
