@@ -24,20 +24,30 @@ RUN echo "deb http://packages.netxms.org/$(lsb_release -si | tr A-Z a-z) $(lsb_r
 # should be a deliberate act that includes `nxdbmgr upgrade`, not a side effect of a
 # rebuild. Override to move deliberately:
 #   docker build --build-arg NETXMS_VERSION=6.2.4 -f Dockerfile.server .
-# Use NETXMS_VERSION=latest to deliberately take the newest available.
+# Use NETXMS_VERSION=latest to deliberately take the newest available. A Debian
+# revision may be included when upstream ships one other than -1 (e.g. 6.2.0-2).
 ARG NETXMS_VERSION=6.2.3
 
-# Update package list with NetXMS repository and install NetXMS server
+# Update package list with NetXMS repository and install NetXMS server.
+# netxms-base and netxms-agent must be pinned explicitly as well: netxms-server pulls
+# them in and depends on netxms-base with a strict "=" version, so apt would otherwise
+# resolve them to the newest available and report the pin as unsatisfiable.
 RUN apt-get update && \
     CODENAME="$(lsb_release -sc | tr A-Z a-z)" && \
     if [ "$NETXMS_VERSION" = "latest" ]; then \
         apt-get install -y netxms-server netxms-dbdrv-sqlite3; \
     else \
-        apt-get install -y "netxms-server=${NETXMS_VERSION}-1+${CODENAME}" \
-                           "netxms-dbdrv-sqlite3=${NETXMS_VERSION}-1+${CODENAME}"; \
+        case "$NETXMS_VERSION" in \
+            *-*) PKG_VERSION="${NETXMS_VERSION}+${CODENAME}" ;; \
+            *) PKG_VERSION="${NETXMS_VERSION}-1+${CODENAME}" ;; \
+        esac && \
+        apt-get install -y "netxms-server=${PKG_VERSION}" \
+                           "netxms-agent=${PKG_VERSION}" \
+                           "netxms-base=${PKG_VERSION}" \
+                           "netxms-dbdrv-sqlite3=${PKG_VERSION}"; \
     fi && \
-    apt-mark hold netxms-server netxms-dbdrv-sqlite3 && \
-    netxmsd -v && \
+    apt-mark hold netxms-server netxms-agent netxms-base netxms-dbdrv-sqlite3 && \
+    netxmsd -v 2>&1 | grep -F "NetXMS Server Version" && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories
